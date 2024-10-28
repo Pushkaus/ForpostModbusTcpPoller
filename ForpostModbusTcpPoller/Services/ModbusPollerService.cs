@@ -13,11 +13,14 @@ namespace ForpostModbusTcpPoller.Services
     {
         private readonly DeviceManagerService _deviceManager;
         private readonly IHubContext<ModbusHub> _hubContext;
+        private readonly ILogger<ModbusPollingHostedService> _logger;
 
-        public ModbusPollerService(DeviceManagerService deviceManager, IHubContext<ModbusHub> hubContext)
+        public ModbusPollerService(DeviceManagerService deviceManager, IHubContext<ModbusHub> hubContext,
+            ILogger<ModbusPollingHostedService> logger)
         {
             _deviceManager = deviceManager;
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         /// <summary>
@@ -26,7 +29,7 @@ namespace ForpostModbusTcpPoller.Services
         public async Task PollDevicesAsync()
         {
             var devices = await _deviceManager.GetAllDevicesAsync();
-            
+
             var pollTasks = new List<Task>();
 
             foreach (var device in devices)
@@ -34,7 +37,7 @@ namespace ForpostModbusTcpPoller.Services
                 pollTasks.Add(PollDeviceAsync(device)); // Добавляем каждый опрос в список задач
             }
 
-            await Task.WhenAll(pollTasks); 
+            await Task.WhenAll(pollTasks);
         }
 
         /// <summary>
@@ -46,19 +49,16 @@ namespace ForpostModbusTcpPoller.Services
             try
             {
                 using var client = new TcpClient();
-                Console.WriteLine($"Attempting to connect to device {device.IpAddress}:{device.Port}");
                 await client.ConnectAsync(device.IpAddress, device.Port);
-                Console.WriteLine("Successfully connected to the device.");
-
                 using var master = ModbusIpMaster.CreateIp(client);
                 master.Transport.ReadTimeout = 5000; // Увеличенный таймаут чтения
                 master.Transport.WriteTimeout = 5000; // Увеличенный таймаут записи
-                
+
                 ushort startAddress = device.RegisterAddress; // Начальный адрес
                 ushort numberOfPoints = 1; // Количество регистров для чтения
 
                 ushort[] registers = await master.ReadInputRegistersAsync(device.UnitId, startAddress, numberOfPoints);
-
+                var isWarning = registers[0] != 0;
                 var data = new
                 {
                     DeviceId = device.Id,
@@ -66,32 +66,35 @@ namespace ForpostModbusTcpPoller.Services
                     device.Port,
                     device.RegisterAddress,
                     device.RegisterName,
-                    Value = registers[0], // Считываем значение из первого регистра
-                    Timestamp = DateTime.UtcNow // Текущее время
+                    Value = registers[0],
+                    Timestamp = DateTimeOffset.UtcNow,
+                    IsWarning = isWarning
                 };
 
                 await _hubContext.Clients.All.SendAsync("ReceiveData", data);
-                Console.WriteLine($"Received register value {registers[0]} from device {device.IpAddress}");
+                _logger.LogInformation($"Получено значение регистра {registers[0]} от устройства {device.IpAddress}");
             }
             catch (SocketException ex)
             {
-                Console.WriteLine($"Socket Error while connecting to device {device.IpAddress}:{device.Port}. Check connection and network.");
-                Console.WriteLine($"Details: {ex.Message}");
+                _logger.LogError(ex,
+                    $"Ошибка сокета при подключении к устройству {device.IpAddress}:{device.Port}." +
+                    $" Проверьте подключение и сеть.");
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"Invalid Operation with device {device.IpAddress}:{device.Port}. Check if the socket is connected.");
-                Console.WriteLine($"Details: {ex.Message}");
+                _logger.LogError(ex,
+                    $"Некорректная операция с устройством {device.IpAddress}:{device.Port}." +
+                    $" Проверьте подключение сокета.");
             }
             catch (IOException ex)
             {
-                Console.WriteLine($"IO Exception while reading from device {device.IpAddress}:{device.Port}. Check if the device is online and reachable.");
-                Console.WriteLine($"Details: {ex.Message}");
+                _logger.LogError(ex,
+                    $"Ошибка ввода-вывода при чтении с устройства {device.IpAddress}:{device.Port}." +
+                    $" Проверьте, что устройство онлайн и доступно.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error while polling device {device.IpAddress}:{device.Port}");
-                Console.WriteLine($"Details: {ex.Message}");
+                _logger.LogError(ex, $"Ошибка при опросе устройства {device.IpAddress}:{device.Port}");
             }
         }
     }

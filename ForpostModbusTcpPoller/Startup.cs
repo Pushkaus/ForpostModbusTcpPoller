@@ -22,10 +22,9 @@ namespace ForpostModbusTcpPoller
             services.AddCors(options =>
             {
                 options.AddPolicy(_corsPolicyName, policy =>
-                    policy.WithOrigins("http://localhost:9674") // Замените на URL вашего фронтенда
+                    policy.AllowAnyOrigin()
                         .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials());
+                        .AllowAnyMethod());
             });
             services.AddSignalR();
             services.AddSingleton<DeviceManagerService>();

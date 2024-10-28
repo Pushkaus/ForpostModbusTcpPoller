@@ -6,7 +6,7 @@ namespace ForpostModbusTcpPoller.Services
     {
         private readonly ModbusPollerService _pollerService;
         private readonly ILogger<ModbusPollingHostedService> _logger;
-        private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(10); // Настройте интервал по необходимости
+        private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(10);
 
         public ModbusPollingHostedService(ModbusPollerService pollerService, ILogger<ModbusPollingHostedService> logger)
         {
