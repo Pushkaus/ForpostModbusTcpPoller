@@ -1,0 +1,21 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  forpostmodbustcppoller-1:
+    build:
+      context: "C:\\Users\\Pavel\\RiderProjects\\ForpostModbusTcpPoller"
+      dockerfile: "ForpostModbusTcpPoller/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net8.0/ForpostModbusTcpPoller.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "forpostmodbustcppoller:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\Pavel\\.nuget\\packages:/home/app/.nuget/packages"
+    - "C:\\Users\\Pavel\\RiderProjects\\ForpostModbusTcpPoller\\ForpostModbusTcpPoller:/app:rw"
+    - "C:\\Users\\Pavel\\RiderProjects\\ForpostModbusTcpPoller:/src:rw"
+    working_dir: "/app"
