@@ -22,9 +22,7 @@ namespace ForpostModbusTcpPoller.Services
             {
                 try
                 {
-                    _logger.LogInformation("Начинаю опрос устройств.");
                     await _pollerService.PollDevicesAsync();
-                    _logger.LogInformation("Опрос устройств завершен.");
                 }
                 catch (Exception ex)
                 {

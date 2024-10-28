@@ -1,5 +1,6 @@
 ﻿using ForpostModbusTcpPoller.Hubs;
 using ForpostModbusTcpPoller.Services;
+using Microsoft.OpenApi.Models;
 
 namespace ForpostModbusTcpPoller
 {
@@ -37,16 +38,22 @@ namespace ForpostModbusTcpPoller
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI();
             }
 
-            app.UseCors(_corsPolicyName);
             app.UseRouting();
+
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<ModbusHub>("/modbusHub");
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.RoutePrefix = string.Empty; 
             });
         }
     }

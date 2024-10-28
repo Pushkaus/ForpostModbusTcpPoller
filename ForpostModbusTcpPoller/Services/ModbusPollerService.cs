@@ -70,9 +70,7 @@ namespace ForpostModbusTcpPoller.Services
                     Timestamp = DateTimeOffset.UtcNow,
                     IsWarning = isWarning
                 };
-
                 await _hubContext.Clients.All.SendAsync("ReceiveData", data);
-                _logger.LogInformation($"Получено значение регистра {registers[0]} от устройства {device.IpAddress}");
             }
             catch (SocketException ex)
             {
