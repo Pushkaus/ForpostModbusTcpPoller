@@ -1,8 +1,15 @@
-﻿services:
+﻿
+services:
   forpostmodbustcppoller:
     build:
-      context: .  
-      dockerfile: Dockerfile  
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "8080:8080" 
+      - "4332:8080" 
 
+  forpostmodbustcppollerview:
+    build:
+      context: ./ForpostModbusTcpPollerView
+      dockerfile: Dockerfile
+    ports:
+      - "4333:6001"

@@ -1,6 +1,7 @@
-﻿using ForpostModbusTcpPoller.Hubs;
+﻿using ForpostModbusTcpPoller.Database;
+using ForpostModbusTcpPoller.Hubs;
 using ForpostModbusTcpPoller.Services;
-using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ForpostModbusTcpPoller
 {
@@ -18,14 +19,18 @@ namespace ForpostModbusTcpPoller
         {
             services.AddHttpContextAccessor();
             services.AddControllers();
+            services.AddDbContextFactory<ApplicationDbContext>(options =>
+                options.UseSqlite("Data Source=devices.db"));
+
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddCors(options =>
             {
                 options.AddPolicy(_corsPolicyName, policy =>
-                    policy.AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+                    policy.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .SetIsOriginAllowed((host) => true)
+                        .AllowCredentials());
             });
             services.AddSignalR();
             services.AddSingleton<DeviceManagerService>();
@@ -33,22 +38,29 @@ namespace ForpostModbusTcpPoller
             services.AddHostedService<ModbusPollingHostedService>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DeviceManagerService deviceManager)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DeviceManagerService deviceManager,
+            IServiceScopeFactory scopeFactory)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            app.UseCors(_corsPolicyName);
+
+            app.UseDeveloperExceptionPage();
 
             app.UseRouting();
-
             app.UseAuthorization();
+            app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ModbusHub>("/modbusHub");
+                endpoints.MapFallbackToFile("index.html");
             });
-
+            
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.Migrate();
+            }
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

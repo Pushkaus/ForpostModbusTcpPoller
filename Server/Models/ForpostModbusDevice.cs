@@ -6,7 +6,7 @@ namespace ForpostModbusTcpPoller.Models
         public int Id { get; set; } 
         public string IpAddress { get; set; }
         public int Port { get; set; } = 502; // Стандартный порт Modbus TCP
-        public byte UnitId => (byte)(Id % 256);
+        public byte UnitId => (byte)1;
         public ushort RegisterAddress { get; set; } = 60;
         public string RegisterName { get; set; } // Для удобства идентификации
     }
