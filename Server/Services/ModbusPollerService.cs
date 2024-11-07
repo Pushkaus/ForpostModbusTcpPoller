@@ -51,13 +51,9 @@ namespace ForpostModbusTcpPoller.Services
                 using var client = new TcpClient();
                 await client.ConnectAsync(device.IpAddress, device.Port);
                 using var master = ModbusIpMaster.CreateIp(client);
-                master.Transport.ReadTimeout = 10000; // Увеличенный таймаут чтения
-                master.Transport.WriteTimeout = 10000; // Увеличенный таймаут записи
+                master.Transport.ReadTimeout = 5000; 
 
-                ushort startAddress = device.RegisterAddress; // Начальный адрес
-                ushort numberOfPoints = 1; // Количество регистров для чтения
-                
-                ushort[] registers = await master.ReadInputRegistersAsync(device.UnitId, startAddress, numberOfPoints);
+                ushort[] registers = await master.ReadInputRegistersAsync(1, device.RegisterAddress, 1);
                 var isWarning = registers[0] != 0;
                 var data = new
                 {
