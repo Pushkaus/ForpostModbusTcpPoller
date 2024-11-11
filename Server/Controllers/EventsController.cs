@@ -77,4 +77,21 @@ public class EventsController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+    [HttpPost("{id}/fixed")]
+    public async Task<IActionResult> FixedEvent(Guid id)
+    {
+        try
+        {
+            await _eventService.SetFixed(id);
+            return NoContent(); 
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message); 
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 }

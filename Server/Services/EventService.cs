@@ -48,6 +48,17 @@ public sealed class EventService
         eventItem.Status = EventStatus.Confirmed;
         await context.SaveChangesAsync();
     }
+    public async Task SetFixed(Guid id)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var eventItem = await context.Events.FindAsync(id);
+        if (eventItem == null)
+        {
+            throw new InvalidOperationException($"Event with ID {id} not found.");
+        }
+        eventItem.Status = EventStatus.Fixed;
+        await context.SaveChangesAsync();
+    }
 
 
     public async Task AddEventAsync(Event newEvent)
