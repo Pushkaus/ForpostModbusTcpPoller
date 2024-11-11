@@ -5,11 +5,5 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "4332:8080" 
+      - "5111:5111" 
 
-  forpostmodbustcppollerview:
-    build:
-      context: ./ForpostModbusTcpPollerView
-      dockerfile: Dockerfile
-    ports:
-      - "4333:6001"

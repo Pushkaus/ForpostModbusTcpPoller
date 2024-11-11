@@ -12,7 +12,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<ForpostModbusDevice> Devices { get; set; }
-
+    public DbSet<Event> Events { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ForpostModbusDevice>().HasIndex(x => x.IpAddress).IsUnique();
