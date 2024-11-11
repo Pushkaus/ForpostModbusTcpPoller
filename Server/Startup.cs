@@ -48,7 +48,12 @@ namespace ForpostModbusTcpPoller
             app.UseRouting();
             app.UseAuthorization();
             app.UseStaticFiles();
-
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.RoutePrefix = "swagger"; 
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
@@ -61,12 +66,7 @@ namespace ForpostModbusTcpPoller
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbContext.Database.Migrate();
             }
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-                c.RoutePrefix = string.Empty; 
-            });
+
         }
     }
 }

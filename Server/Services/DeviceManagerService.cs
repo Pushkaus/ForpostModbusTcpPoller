@@ -73,5 +73,21 @@ namespace ForpostModbusTcpPoller.Services
             await context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> ConfirmWarning(int id, bool isConfirmed)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+    
+            var device = await context.Devices.FindAsync(id);
+            if (device == null)
+            {
+                return false; 
+            }
+            device.IsConfirmed = isConfirmed;
+
+            await context.SaveChangesAsync();
+
+            return true; 
+        }
     }
 }

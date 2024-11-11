@@ -76,4 +76,11 @@ public class ModbusDevicesController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPut("warning")]
+    public async Task<IActionResult> ConfirmWarning(int id, bool isConfirmed)
+    {
+        await _deviceManager.ConfirmWarning(id, isConfirmed);
+        return NoContent();
+    }
 }

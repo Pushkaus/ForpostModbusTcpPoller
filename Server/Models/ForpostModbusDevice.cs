@@ -1,5 +1,4 @@
-﻿// Backend/Models/ModbusDevice.cs
-namespace ForpostModbusTcpPoller.Models
+﻿namespace ForpostModbusTcpPoller.Models
 {
     public class ForpostModbusDevice
     {
@@ -8,6 +7,7 @@ namespace ForpostModbusTcpPoller.Models
         public int Port { get; set; } = 502; // Стандартный порт Modbus TCP
         public byte UnitId => (byte)(Id % 256);
         public ushort RegisterAddress { get; set; } = 60;
-        public string RegisterName { get; set; } // Для удобства идентификации
+        public string RegisterName { get; set; }
+        public bool IsConfirmed { get; set; } = false;
     }
 }
