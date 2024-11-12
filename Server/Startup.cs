@@ -34,7 +34,7 @@ namespace ForpostModbusTcpPoller
             });
             services.AddSignalR();
             services.AddSingleton<DeviceManagerService>();
-            services.AddScoped<EventService>();
+            services.AddSingleton<EventService>();
             services.AddSingleton<ModbusPollerService>();
             services.AddHostedService<ModbusPollingHostedService>();
         }

@@ -79,4 +79,45 @@ public sealed class EventService
             await context.SaveChangesAsync();
         }
     }
+
+    public async Task CheckEvent(ForpostModbusDevice device, bool currentIsWarning, PreviousData previousData)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        if (!currentIsWarning && previousData.IsWarning)
+        {
+            var newEvent = new Event
+            {
+                IpAdress = device.IpAddress,
+                CreatedAt = DateTime.UtcNow,
+                Status = previousData.IsConfirmed ? EventStatus.Fixed : EventStatus.NotConfirmed
+            };
+            context.Events.Add(newEvent);
+            await context.SaveChangesAsync();
+        }
+        else if (currentIsWarning && !previousData.IsWarning)
+        {
+            if (!device.IsConfirmed)
+            {
+                var newEvent = new Event
+                {
+                    IpAdress = device.IpAddress,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = EventStatus.NotConfirmed
+                };
+                context.Events.Add(newEvent);
+                await context.SaveChangesAsync();
+            }
+        }
+        else if (currentIsWarning && previousData.IsWarning && device.IsConfirmed && !previousData.IsConfirmed) 
+        {
+            var newEvent = new Event
+            {
+                IpAdress = device.IpAddress,
+                CreatedAt = DateTime.UtcNow,
+                Status = EventStatus.Confirmed
+            };
+            context.Events.Add(newEvent);
+            await context.SaveChangesAsync();
+        }
+    }
 }

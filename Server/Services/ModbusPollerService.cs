@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,15 +13,18 @@ namespace ForpostModbusTcpPoller.Services
     public class ModbusPollerService
     {
         private readonly DeviceManagerService _deviceManager;
+        private readonly EventService _eventService;
         private readonly IHubContext<ModbusHub> _hubContext;
         private readonly ILogger<ModbusPollingHostedService> _logger;
+        private readonly ConcurrentDictionary<int, PreviousData> _previousData = new();
 
         public ModbusPollerService(DeviceManagerService deviceManager, IHubContext<ModbusHub> hubContext,
-            ILogger<ModbusPollingHostedService> logger)
+            ILogger<ModbusPollingHostedService> logger, EventService eventService)
         {
             _deviceManager = deviceManager;
             _hubContext = hubContext;
             _logger = logger;
+            _eventService = eventService;
         }
 
         /// <summary>
@@ -51,7 +55,7 @@ namespace ForpostModbusTcpPoller.Services
                 using var client = new TcpClient();
                 await client.ConnectAsync(device.IpAddress, device.Port);
                 using var master = ModbusIpMaster.CreateIp(client);
-                master.Transport.ReadTimeout = 5000; 
+                master.Transport.ReadTimeout = 5000;
 
                 ushort[] registers = await master.ReadInputRegistersAsync(1, device.RegisterAddress, 1);
                 var isWarning = registers[0] != 0;
@@ -67,6 +71,20 @@ namespace ForpostModbusTcpPoller.Services
                     IsWarning = isWarning
                 };
                 await _hubContext.Clients.All.SendAsync("ReceiveData", data);
+
+                if (_previousData.TryGetValue(device.Id, out var value))
+                {
+                    await _eventService.CheckEvent(device, data.IsWarning, value);
+                }
+
+
+                _previousData[device.Id] = new PreviousData
+                {
+                    IsWarning = data.IsWarning,
+                    IsConfirmed = device.IsConfirmed
+                };
+
+                Console.WriteLine(_previousData[device.Id].IsWarning);
                 Console.WriteLine(data);
             }
             catch (SocketException ex)

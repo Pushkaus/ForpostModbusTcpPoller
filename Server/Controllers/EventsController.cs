@@ -42,56 +42,12 @@ public class EventsController : ControllerBase
 
         return Ok(eventItem);
     }
-    [HttpPost]
-    public async Task<IActionResult> AddEvent(Event newEvent)
-    {
-        if (newEvent == null)
-        {
-            return BadRequest("Event data is required.");
-        }
-
-        await _eventService.AddEventAsync(newEvent);
-        return CreatedAtAction(nameof(GetEventById), new { id = newEvent.Id }, newEvent);
-    }
-
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEvent(Guid id)
     {
         await _eventService.DeleteEventAsync(id);
         return NoContent();
     }
-    [HttpPost("{id}/confirm")]
-    public async Task<IActionResult> ConfirmEvent(Guid id)
-    {
-        try
-        {
-            await _eventService.SetConfirmed(id);
-            return NoContent(); 
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message); 
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-    [HttpPost("{id}/fixed")]
-    public async Task<IActionResult> FixedEvent(Guid id)
-    {
-        try
-        {
-            await _eventService.SetFixed(id);
-            return NoContent(); 
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message); 
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
+
 }
