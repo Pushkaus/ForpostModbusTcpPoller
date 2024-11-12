@@ -21,15 +21,25 @@ public class EventsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllEvents([FromQuery] int skip = 0, [FromQuery] int limit = 10)
     {
-        var events = await _eventService.GetAllEventsAsync(skip, limit);
-        return Ok(events);
+        var pagedResult = await _eventService.GetAllEventsAsync(skip, limit);
+        return Ok(new
+        {
+            TotalCount = pagedResult.TotalCount,
+            Items = pagedResult.Items
+        });
     }
+
     [HttpGet("Unconfirmed")]
     public async Task<IActionResult> GetAllUnconfirmedEvents([FromQuery] int skip = 0, [FromQuery] int limit = 10)
     {
-        var events = await _eventService.GetUnconfirmedEventsAsync(skip, limit);
-        return Ok(events);
+        var pagedResult = await _eventService.GetUnconfirmedEventsAsync(skip, limit);
+        return Ok(new
+        {
+            TotalCount = pagedResult.TotalCount,
+            Items = pagedResult.Items
+        });
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetEventById(Guid id)

@@ -13,23 +13,39 @@ public sealed class EventService
         _contextFactory = contextFactory;
     }
 
-    public async Task<IEnumerable<Event>> GetAllEventsAsync(int skip = 0, int limit = 10)
+    public async Task<PagedResult<Event>> GetAllEventsAsync(int skip = 0, int limit = 10)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Events
+        var total = await context.Events.CountAsync();
+
+        var items = await context.Events
             .Skip(skip)
             .Take(limit)
             .ToListAsync();
+
+        return new PagedResult<Event>
+        {
+            Items = items,
+            TotalCount = total
+        };
     }
 
-    public async Task<IEnumerable<Event>> GetUnconfirmedEventsAsync(int skip = 0, int limit = 10)
+    public async Task<PagedResult<Event>> GetUnconfirmedEventsAsync(int skip = 0, int limit = 10)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Events
-            .Where(e => e.Status == EventStatus.NotConfirmed)
+        var query = context.Events.Where(e => e.Status == EventStatus.NotConfirmed);
+        var total = await query.CountAsync();
+
+        var items = await query
             .Skip(skip)
             .Take(limit)
             .ToListAsync();
+
+        return new PagedResult<Event>
+        {
+            Items = items,
+            TotalCount = total
+        };
     }
 
     public async Task<Event?> GetEventByIdAsync(Guid id)
@@ -37,6 +53,7 @@ public sealed class EventService
         await using var context = await _contextFactory.CreateDbContextAsync();
         return await context.Events.FindAsync(id);
     }
+
     public async Task SetConfirmed(Guid id)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
@@ -45,9 +62,11 @@ public sealed class EventService
         {
             throw new InvalidOperationException($"Event with ID {id} not found.");
         }
+
         eventItem.Status = EventStatus.Confirmed;
         await context.SaveChangesAsync();
     }
+
     public async Task SetFixed(Guid id)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
@@ -56,6 +75,7 @@ public sealed class EventService
         {
             throw new InvalidOperationException($"Event with ID {id} not found.");
         }
+
         eventItem.Status = EventStatus.Fixed;
         await context.SaveChangesAsync();
     }
@@ -108,7 +128,7 @@ public sealed class EventService
                 await context.SaveChangesAsync();
             }
         }
-        else if (currentIsWarning && previousData.IsWarning && device.IsConfirmed && !previousData.IsConfirmed) 
+        else if (currentIsWarning && previousData.IsWarning && device.IsConfirmed && !previousData.IsConfirmed)
         {
             var newEvent = new Event
             {
