@@ -45,9 +45,7 @@ namespace ForpostModbusTcpPoller.Services
         public async Task<bool> UpdateDeviceAsync(ForpostModbusDevice device)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-
             context.Update(device);
-
             try
             {
                 await context.SaveChangesAsync();

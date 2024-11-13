@@ -21,6 +21,7 @@ public sealed class EventService
         var items = await context.Events
             .Skip(skip)
             .Take(limit)
+            .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
 
         return new PagedResult<Event>
@@ -48,7 +49,7 @@ public sealed class EventService
         };
     }
 
-    public async Task<Event?> GetEventByIdAsync(Guid id)
+    public async Task<Event?> GetEventByIdAsync(int id)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         return await context.Events.FindAsync(id);
@@ -79,8 +80,6 @@ public sealed class EventService
         eventItem.Status = EventStatus.Fixed;
         await context.SaveChangesAsync();
     }
-
-
     public async Task AddEventAsync(Event newEvent)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
@@ -89,7 +88,7 @@ public sealed class EventService
         await context.SaveChangesAsync();
     }
 
-    public async Task DeleteEventAsync(Guid id)
+    public async Task DeleteEventAsync(int id)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         var eventToDelete = await context.Events.FindAsync(id);
@@ -103,13 +102,14 @@ public sealed class EventService
     public async Task CheckEvent(ForpostModbusDevice device, bool currentIsWarning, PreviousData previousData)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
+
         if (!currentIsWarning && previousData.IsWarning)
         {
             var newEvent = new Event
             {
                 IpAdress = device.IpAddress,
-                CreatedAt = DateTime.UtcNow,
-                Status = previousData.IsConfirmed ? EventStatus.Fixed : EventStatus.NotConfirmed
+                CreatedAt = DateTime.Now,
+                Status = EventStatus.Fixed
             };
             context.Events.Add(newEvent);
             await context.SaveChangesAsync();
@@ -121,7 +121,7 @@ public sealed class EventService
                 var newEvent = new Event
                 {
                     IpAdress = device.IpAddress,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
                     Status = EventStatus.NotConfirmed
                 };
                 context.Events.Add(newEvent);
@@ -133,7 +133,7 @@ public sealed class EventService
             var newEvent = new Event
             {
                 IpAdress = device.IpAddress,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 Status = EventStatus.Confirmed
             };
             context.Events.Add(newEvent);

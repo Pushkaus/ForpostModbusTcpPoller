@@ -28,7 +28,6 @@ public class EventsController : ControllerBase
             Items = pagedResult.Items
         });
     }
-
     [HttpGet("Unconfirmed")]
     public async Task<IActionResult> GetAllUnconfirmedEvents([FromQuery] int skip = 0, [FromQuery] int limit = 10)
     {
@@ -39,10 +38,8 @@ public class EventsController : ControllerBase
             Items = pagedResult.Items
         });
     }
-
-
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetEventById(Guid id)
+    public async Task<IActionResult> GetEventById(int id)
     {
         var eventItem = await _eventService.GetEventByIdAsync(id);
         if (eventItem == null)
@@ -54,7 +51,7 @@ public class EventsController : ControllerBase
     }
     
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteEvent(Guid id)
+    public async Task<IActionResult> DeleteEvent(int id)
     {
         await _eventService.DeleteEventAsync(id);
         return NoContent();
